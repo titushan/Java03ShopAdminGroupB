@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bwf.shop.admin.mapper.AdminMapper">
+
+    <select id="getAdminByName" resultMap="Admin">
+        select * from `admin` where admin_name = #{ amdin_name }
+    </select>
+
+    <select id="getAdminList" resultMap="Admin">
+        select a.*
+            from `admin` a
+                inner join `admin_role` b on a.admin_id
+           <where>
+               <if test="bo.admin_id != null">
+                   and admin_id = #{bo.admin_id}
+               </if>
+                <if test="bo.admin_name != null">
+                    and admin_name like '%${bo.admin_name}%'
+                </if>
+               <if test="bo.admin_nickname != null and bo.admin_nickname.length != 0">
+                   and a.admin_nickname like '%${bo.admin_nickname}%'
+               </if>
+               <if test="bo.role_id != null and bo.role_id != -1">
+                   and b.role_id = #{bo.role_id}
+               </if>
+           </where>
+            <choose>
+                <when test="  bo.start == null and  bo.length == null ">
+                    limit 0,10
+                </when>
+                <when test=" bo.start == null and  bo.length != null  ">
+                    limit 0,#{ bo.length }
+                </when>
+                <when test=" bo.start != null and  bo.length == null ">
+                    limit #{ bo.start },10
+                </when>
+                <otherwise>
+                    limit #{ bo.start },#{ bo.length }
+                </otherwise>
+            </choose>
+    </select>
+
+
+
+<!--    添加员工对象-->
+    <insert id="addAdmin" useGeneratedKeys="true" keyProperty="admin_id">
+        insert into `admin`
+        (admin_name,admin_pass,admin_nickname)
+        values ( #{bo.admin_name} , #{bo.admin_pass} , #{bo.admin_nickname} )
+    </insert>
+<!--    添加员工角色-->
+    <insert id="addAdminRole">
+        insert into `admin_role`
+        (admin_id,role_id)
+        values ( #{admin_id} , #{role_id} )
+    </insert>
+
+
+<!--根据编号查员工-->
+    <select id="getAdminById" resultMap="Admin">
+        select * from `admin` where admin_id = #{admin_id}
+    </select>
+
+<!--    修改员工-->
+    <update id="updateAdmin">
+        update `admin`
+        <set>
+            <if test="bo.admin_pass!=null and bo.admin_pass.length>0">
+                admin_pass = #{bo.admin_pass},
+            </if>
+            <if test="bo.admin_nickname !=null and bo.admin_nickname.length > 0">
+                admin_nickname = #{bo.admin_nickname}
+            </if>
+        </set>
+        where
+        admin_id = #{bo.admin_id}
+    </update>
+
+<!--删除员工所有角色-->
+    <delete id="deleteAdminRoles">
+        delete from `admin_role`
+        where
+        admin_id = #{admin_id}
+    </delete>
+
+
+<!--    删除单个员工-->
+
+    <delete id="deleteOne">
+        delete from `admin` where admin_id = #{admin_id}
+
+    </delete>
+
+
+<!--    删除多个员工-->
+
+    <delete id="deleteList">
+        delete from `admin`
+        where
+            admin_id in
+            <foreach collection="ids" item="id" open="(-1," close=")" separator=",">
+                #{id}
+            </foreach>
+
+    </delete>
+
+<!--    根据筛选的员工对象查询满足条件的员工总记录数-->
+    <select id="getCount" resultType="java.lang.Integer">
+        select count(*)
+        from `admin` a
+        inner join `admin_role` b on a.admin_id = b.admin_id
+        <where>
+            <if test="bo.admin_id != null">
+                a.admin_id = #{bo.admin_id}
+            </if>
+            <if test="bo.admin_name != null and bo.admin_name.length != 0">
+                and a.admin_name like '%${bo.admin_name}%'
+            </if>
+            <if test="bo.admin_nickname != null and bo.admin_nickname.length != 0">
+                and a.admin_nickname like '%${bo.admin_nickname}%'
+            </if>
+            <if test="bo.role_id != null and bo.role_id != -1">
+                and b.role_id = #{bo.role_id}
+            </if>
+        </where>
+    </select>
+
+
+
+
+
+
+
+    <resultMap id="Admin" type="com.bwf.shop.admin.bean.po.Admin">
+        <id property="admin_id" column="admin_id"/>
+        <result property="admin_name" column="admin_name"/>
+        <result property="admin_pass" column="admin_pass"/>
+        <result property="admin_nickname" column="admin_nickname"/>
+        <collection
+                property="roleList"
+                ofType="com.bwf.shop.admin.bean.po.Role"
+                column="admin_id"
+                select="com.bwf.shop.admin.mapper.RoleMapper.getRoleListByAdminId"
+                fetchType="lazy"/>
+
+    </resultMap>
+
+</mapper>

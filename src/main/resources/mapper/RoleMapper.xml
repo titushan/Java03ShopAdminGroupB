@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bwf.shop.admin.mapper.RoleMapper">
+
+
+
+    <select id="getAllRoleList" resultMap="Role">
+        select * from `role`
+    </select>
+
+    <select id="getRoleList" resultMap="Role">
+        select *
+        from `role`
+        <where>
+            <if test="bo.role_id != null">
+                role_id = #{bo.role_id}
+            </if>
+            <if test="bo.role_name != null and bo.role_name.length > 0">
+                and role_name like '%${bo.role_name}%'
+            </if>
+        </where>
+        <choose>
+            <when test="  bo.start == null and  bo.length == null ">
+                limit 0,10
+            </when>
+            <when test=" bo.start == null and  bo.length != null  ">
+                limit 0,#{ bo.length }
+            </when>
+            <when test=" bo.start != null and  bo.length == null ">
+                limit #{ bo.start },10
+            </when>
+            <otherwise>
+                limit #{ bo.start },#{ bo.length }
+            </otherwise>
+        </choose>
+    </select>
+
+
+    <insert id="addRole" useGeneratedKeys="true" keyProperty="role_id">
+    insert into `role`
+        (role_name)
+        values(#{bo.role_name} )
+    </insert>
+
+    <insert id="addRolePermissions">
+    insert into `role_permission `
+        (role_id,permission_id)
+        values
+            <foreach collection="permissionList" item="permission" separator=",">
+
+<!--                当添加角色 权限时，循环勾选的权限， 判断 已选择的权限 添加 给角色。（已选择的权限在传递的对象中的 权限列表中的 值 不为空）-->
+                <if test="permission.permission_id != null">
+                    (#{role_id},#{permission.permission_id})
+                </if>
+
+            </foreach>
+
+    </insert>
+
+
+
+
+
+    <select id="getRoleById" resultMap="Role">
+        select * from `role` where role_id = #{role_id}
+    </select>
+
+
+    <update id="updateRole">
+        update `role`
+        set
+        role_name = #{bo.role_name}
+        where
+        role_id = #{bo.role_id}
+    </update>
+
+
+    <delete id="deleteRolePermissions">
+        delete from `role_permission`
+        where
+        role_id = #{role_id}
+    </delete>
+
+
+
+
+
+
+
+
+    <resultMap id="Role" type="com.bwf.shop.admin.bean.po.Role">
+        <id property="role_id" column="role_id"/>
+        <result property="role_name" column="role_name"/>
+    </resultMap>
+
+
+
+
+
+
+</mapper>
