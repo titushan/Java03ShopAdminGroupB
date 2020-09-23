@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bwf.shop.admin.mapper.PermissionMapper">
+
+
+    <select id="getAll" resultMap="Permission">
+        select * from `permission`;
+    </select>
+
+
+
+
+    <select id="getAllPermissionWithRole" resultMap="PermissionRoleVo">
+        select a.*,b.role_id
+        from `permission` a
+        left join (select * from `role_permission` where role_id = #{role_id}) b on a.permission_id = b.permission_id
+    </select>
+
+
+
+
+
+
+    <resultMap id="Permission" type="com.bwf.shop.admin.bean.po.Permission">
+        <id property="permission_id" column="permission_id"/>
+        <result property="permission_name" column="permission_name"/>
+        <result property="pid" column="pid"/>
+    </resultMap>
+
+
+
+
+
+
+
+    <resultMap id="PermissionRoleVo" extends="Permission"
+               type="com.bwf.shop.admin.bean.vo.PermissionRoleVo">
+        <result property="role_id" column="role_id"/>
+    </resultMap>
+
+
+
+
+
+
+
+</mapper>
